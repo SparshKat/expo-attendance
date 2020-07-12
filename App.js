@@ -1,10 +1,27 @@
-import React from 'react'
-import { StyleSheet, Text, View, Image, Button, Alert } from 'react-native'
+import React, { useState, useEffect, Component } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View, Image, Button, Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as Permissions from 'expo-permissions'
 
-export default function App() {
-	const askForPermission = async () => {
+export default class App extends Component {
+	state = {
+		condition: "1",
+		studentsData: []
+		// password: 'iusdfba',
+		// isPasswordHidden: true,
+		// toggleText: "sbekfjkjse",
+	}
+
+	//   constructor(props: Props) { 
+	// 		super(props); 
+	// 		this.state = { 
+	// 		  password: '', 
+	// 		  isPasswordHidden: true, 
+	// 		  toggleText: 'Show', 
+	// 		}; 
+	// 	} 
+	// const [isShowingCamera, setIsShowingCamera] = useState("1");
+	askForPermission = async () => {
 		const permissionResult = await Permissions.askAsync(Permissions.CAMERA)
 		if (permissionResult.status !== 'granted') {
 			Alert.alert('no permissions to access camera!', [{ text: 'ok' }])
@@ -13,15 +30,24 @@ export default function App() {
 		return true
 	}
 
-	// justHere = async () => {
-	// 	fetch('http://0b0a76c4214a.ngrok.io/api/test')
-	// 	.then(res => console.log(res))
-	// 	.catch(err => console.log("Here :" + err))
-	// }
+	justHere = async () => {
+		console.log("HELLLOOO");
+		setIsShowingCamera("1");
+		// fetch('http://0b0a76c4214a.ngrok.io/api/test')
+		// 	.then(res => console.log(res))
+		// 	.catch(err => console.log("Here :" + err))
+	}
 
 	takeImage = async () => {
 		// make sure that we have the permission
-		const hasPermission = await askForPermission()
+		
+		// setTimeout( ()=> {
+		// 	this.setState({
+		// 		condition: "3"
+		// 	})
+		// },4000);
+		// setIsShowingCamera("2");
+		const hasPermission = await this.askForPermission()
 		if (!hasPermission) {
 			return
 		} else {
@@ -33,10 +59,13 @@ export default function App() {
 				quality: 0.3,
 				base64: false,
 			})
+			
 			// make sure a image was taken:
 			if (!image.cancelled) {
-
-				fetch('http://0b0a76c4214a.ngrok.io/api/test', {
+				this.setState({
+					condition: "2"
+				})
+				fetch('http://269f15da2405.in.ngrok.io/api/test', {
 					method: 'POST',
 					headers: {
 						Accept: 'application/json',
@@ -46,23 +75,63 @@ export default function App() {
 					// body: JSON.stringify({
 					// 	imgsource: image.base64,
 					// }),
-					body : image
+					body: image
 				})
-				.then(res => {
-					console.log("Succes : " + JSON.parse(res));
-				})
-				.catch(err => {
-					console.log("error occured : " + err);
-				})
+					.then(res => {
+						var newEl = JSON.parse(JSON.stringify(res))
+						console.log(newEl);
+						// console.log(newEl._bodyBlob._data);
+						// console.log(newEl._bodyInit._data);
+						// console.log();
+						// console.log(JSON.parse(JSON.stringify(res.body)));
+
+						this.setState({
+							condition: "3"
+						})
+						console.log("Succes : " + res);
+					})
+					.catch(err => {
+						console.log("error occured : " + err);
+					})
 			}
 		}
 	}
-	return (
-		<View style={styles.container}>
-			<Button title="Take a photo" onPress={takeImage} />
-			{/* <Button title="Click me" onPress={justHere} /> */}
-		</View>
-	)
+
+	render() {
+		// return (
+		// 	<View style={styles.container}>
+		// 		<Button title="Take a photo" onPress={this.takeImage} />
+		// 		{/* <Button title="Click me" onPress={justHere} /> */}
+		// 	</View>
+		// )
+		if (this.state.condition === "1") {
+			return (
+				<View style={styles.container}>
+					<Button title="Take a photo" onPress={this.takeImage} />
+					{/* <Button title="Click me" onPress={justHere} /> */}
+				</View>
+			)
+		} else if (this.state.condition === "2") {
+			return (
+				<View style={[styles.container, styles.horizontal]}>
+					{/* <ActivityIndicator /> */}
+					<ActivityIndicator size="large" />
+					{/* <ActivityIndicator size="small" color="#0000ff" />
+					<ActivityIndicator size="large" color="#00ff00" /> */}
+				</View>
+			)
+		} else {
+			return (
+				<View style={styles.container}>
+					{/* <Button title="Take a photo" onPress={takeImage} /> */}
+					<Button title="Click me" onPress={this.justHere} />
+				</View>
+			)
+
+		}
+
+	}
+
 }
 
 const styles = StyleSheet.create({
@@ -72,4 +141,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
+	horizontal: {
+		flexDirection: "row",
+		justifyContent: "space-around",
+		padding: 10
+	}
 })
